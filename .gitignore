@@ -1,0 +1,7 @@
+*.iml
+.idea
+*.exe
+*.dll
+*.so
+*.dylib
+*.test
