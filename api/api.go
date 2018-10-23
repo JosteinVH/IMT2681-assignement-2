@@ -19,6 +19,7 @@ var ids = make([]int, 0)
 //TODO Ticker in memory
 //TODO Webhook in memory
 
+
 func conver(d time.Duration) string {
 	// For string manipulation
 	var felles []string
@@ -240,4 +241,39 @@ func GetTrackProp(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func InfoTicker(w http.ResponseWriter, r *http.Request) Ticker{
+	LAST := mongodb.Global.Count()
+	ti := Ticker{}
+	const (
+		FIRST = 1
+		CAP = 5
+		)
 
+	for _, v := range mongodb.Global.GetAllTracks() {
+		if v.Id == FIRST {
+			ti.T_start = v.Timestamp
+		}
+		if v.Id == CAP  {
+			//TODO if database is empty
+			ti.T_stop  = v.Timestamp
+		}
+		if v.Id == LAST {
+			ti.T_latest = v.Timestamp
+		}
+		ti.Tracks = append(ti.Tracks,v.Id)
+	}
+	return ti
+}
+
+
+
+func GetTicker(w http.ResponseWriter, r *http.Request) {
+	startTime := time.Now()
+	tick := InfoTicker(w,r)
+	tick.Processing = time.Now().Sub(startTime)
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(tick); err != nil {
+		fmt.Printf("PROBLEM: %v", err)
+	}
+}

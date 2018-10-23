@@ -1,5 +1,7 @@
 package data
 
+import "time"
+
 type TrackStorage interface {
 	Init()
 	Add(t Tracks) error
@@ -46,6 +48,6 @@ type Ticker struct {
 	T_latest   int64 `json:"t_latest"`
 	T_start    int64 `json:"t_start"`
 	T_stop     int64 `json:"t_stop"`
-	Tracks     []int   `json:"tracks"`
-	Processing int `json:"t_latest"`
+	Tracks     []int  `json:"tracks"`
+	Processing time.Duration `json:"processing"`
 }

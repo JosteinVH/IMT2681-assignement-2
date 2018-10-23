@@ -37,7 +37,8 @@ func main() {
 	r.HandleFunc("/igcinfo/api/igc/{id:[0-9]+}/{prop:[a-z_H]+}", GetTrackProp).Methods("GET")
 
 	// Ticker handlers
-	r.HandleFunc("/api/ticker/", LatestTicker).Methods("GET")
+	r.HandleFunc("/api/ticker/", GetTicker).Methods("GET")
+	r.HandleFunc("/api/ticker/latest", GetLatest).Methods("GET")
 
 	log.Fatal(http.ListenAndServe(":"+port, r))
 }
