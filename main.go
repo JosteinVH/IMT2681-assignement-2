@@ -1,14 +1,13 @@
 package main
 
 import (
-	"github.com/gorilla/mux"
 	. "IMT2681-assignement-2/api"
 	"IMT2681-assignement-2/mongodb"
+	"github.com/gorilla/mux"
 	"log"
 	"net/http"
 	"os"
 )
-
 
 func main() {
 	// Get port for Heroku
@@ -16,7 +15,6 @@ func main() {
 	if port == "" {
 		port = "8080"
 	}
-
 
 	//INIT DATABASE
 
@@ -30,11 +28,16 @@ func main() {
 
 	// Set up handlers
 	r := mux.NewRouter()
+
+	// IGC track handlers
 	r.HandleFunc("/igcinfo/api", InfoHandler).Methods("GET")
 	r.HandleFunc("/igcinfo/api/igc", GetAllId).Methods("GET")
 	r.HandleFunc("/igcinfo/api/igc", AddTrack).Methods("POST")
 	r.HandleFunc("/igcinfo/api/igc/{id:[0-9]+}", GetTrack).Methods("GET")
 	r.HandleFunc("/igcinfo/api/igc/{id:[0-9]+}/{prop:[a-z_H]+}", GetTrackProp).Methods("GET")
+
+	// Ticker handlers
+	r.HandleFunc("/api/ticker/latest", LatestTicker).Methods("GET")
 
 	log.Fatal(http.ListenAndServe(":"+port, r))
 }

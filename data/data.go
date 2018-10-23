@@ -7,8 +7,14 @@ type TrackStorage interface {
 	GetAllTracks() []Tracks
 	Get(keyID string) (Tracks, bool)
 }
+/*
+type TickerStorage interface {
+	//Init()
+	Add(ti Ticker) error
+}*/
 
 type Tracks struct {
+	Timestamp	 int64   `json:"timestamp"`
 	H_date       string  `json:"H_date"`
 	Pilot        string  `json:"pilot"`
 	Glider       string  `json:"glider"`
@@ -35,9 +41,9 @@ type Url struct {
 }
 
 type Ticker struct {
-	T_latest   float64 `json:"t_latest"`
-	T_start    float64 `json:"t_start"`
-	T_stop     float64 `json:"t_stop"`
+	T_latest   int64 `json:"t_latest"`
+	T_start    int64 `json:"t_start"`
+	T_stop     int64 `json:"t_stop"`
 	Tracks     []int   `json:"tracks"`
-	Processing float64 `json:"t_latest"`
+	Processing int `json:"t_latest"`
 }

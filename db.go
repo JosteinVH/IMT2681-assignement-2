@@ -1,12 +1,11 @@
 package main
 
 import (
-	"github.com/globalsign/mgo"
 	"fmt"
+	"github.com/globalsign/mgo"
 )
 
-
-func main(){
+func main() {
 
 	session, err := mgo.Dial("mongodb://heihade:heihade123@ds131983.mlab.com:31983/josteivhdb")
 	if err != nil {
@@ -19,4 +18,3 @@ func main(){
 
 	fmt.Println(c)
 }
-

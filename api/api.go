@@ -12,12 +12,9 @@ import (
 	"strings"
 	"time"
 )
-// Unique id for each track
-// Array containing each id of track
-// Map of tracks and their id
-var tracks = make(map[string]Tracks)
+
 // The time
-var t = time.Now()
+var timer = time.Now()
 
 func conver(d time.Duration) string {
 	// For string manipulation
@@ -97,7 +94,7 @@ func conver(d time.Duration) string {
 
 func InfoHandler(w http.ResponseWriter, r *http.Request) {
 	// Time since application started
-	uptime := time.Since(t)
+	uptime := time.Since(timer)
 	iso := conver(uptime)
 	infoApi := Info{
 		iso,
@@ -113,16 +110,14 @@ func InfoHandler(w http.ResponseWriter, r *http.Request) {
 
 func GetAllId(w http.ResponseWriter, r *http.Request) {
 	var ids = make([]int, 0)
-	w.Header().Set("Content-Type", "application/json")
 
-	fmt.Println(mongodb.Global.Count())
-
-	for i:= 0; i < mongodb.Global.Count(); i++ {
+	for i,_ := range mongodb.Global.GetAllTracks() {
 		ids = append(ids,i)
 	}
 
-	err := json.NewEncoder(w).Encode(ids)
-	if  err != nil {
+	w.Header().Set("Content-Type", "application/json")
+
+	if  err := json.NewEncoder(w).Encode(ids); err != nil {
 		http.Error(w, "Something went wrong", http.StatusBadRequest)
 		return
 	}
@@ -154,24 +149,32 @@ func AddTrack(w http.ResponseWriter, r *http.Request){
 		// SLICE OF INT TO KEEP TRACK OF THE POST ID'S
 		idCount := mongodb.Global.Count()
 		// Stores the received track in the map
+		now := time.Now()
+		unixNano := now.UnixNano()
+		start := unixNano / 1000000
+		fmt.Printf("%T", start)
 		var t Tracks = Tracks {
+			start,
 			track.Date.String(),
 			track.Pilot,
 			track.GliderType,
 			track.GliderID,
 			totalDistance,
 			igcUrl.Url,
+
 		}
 
 		mongodb.Global.Add(t)
 
+
+		//mongodb.GTicker.Add(ti)
+		//fmt.Println("TICKER: ", ti)
 		w.Header().Set("Content-Type", "application/json")
 		// Encodes unique id in json - back to user
 		if err := json.NewEncoder(w).Encode(TrackId{Id: idCount}); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		idCount++
 	}
 }
 
@@ -231,3 +234,23 @@ func GetTrackProp(w http.ResponseWriter, r *http.Request) {
 	http.Error(w, "", http.StatusNotFound)
 	return
 }
+
+
+func LatestTicker(w http.ResponseWriter, r *http.Request){
+	const CAP = 5
+	//ticker := Ticker{}
+	ts := mongodb.Global.GetAllTracks()
+
+	for i,_:= range ts {
+		if (i%CAP) == 0 && i != 0 {
+			return
+		} else {
+			w.Header().Set("Content-Type", "application/json")
+			if err := json.NewEncoder(w).Encode(i); err != nil {
+				fmt.Printf("Something went wrong: %v", err)
+			}
+		}
+	}
+}
+
+

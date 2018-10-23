@@ -8,6 +8,7 @@ import (
 )
 
 var Global TrackStorage
+//var GTicker TickerStorage
 
 type TracksMongoDB struct {
 	DatabaseURL  string
@@ -96,4 +97,21 @@ func (db *TracksMongoDB) GetAllTracks() []Tracks{
 	}
 
 	return all
+}
+
+
+func(db *TracksMongoDB) AddTicker(ti Ticker) error {
+	session, err := mgo.Dial(db.DatabaseURL)
+	if err != nil {
+		fmt.Printf("ERROR TICKER: %v", err)
+		//panic(err)
+	}
+	defer session.Close()
+
+	err = session.DB(db.DatabaseName).C(db.DatabaseCol).Insert(ti)
+	if err != nil{
+		fmt.Printf("Error in insert: %v", err)
+	}
+
+	return nil
 }
