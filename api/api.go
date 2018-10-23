@@ -1,12 +1,12 @@
 package api
 
 import (
+	. "IMT2681-assignement-2/data"
+	"IMT2681-assignement-2/mongodb"
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/marni/goigc"
-	. "IMT2681-assignement-2/data"
-	"IMT2681-assignement-2/mongodb"
 	"net/http"
 	"strconv"
 	"strings"
@@ -15,6 +15,9 @@ import (
 
 // The time
 var timer = time.Now()
+var ids = make([]int, 0)
+//TODO Ticker in memory
+//TODO Webhook in memory
 
 func conver(d time.Duration) string {
 	// For string manipulation
@@ -105,14 +108,16 @@ func InfoHandler(w http.ResponseWriter, r *http.Request) {
 	// Set the header to json
 	w.Header().Set("Content-Type", "application/json")
 	// Encodes information to user
-	json.NewEncoder(w).Encode(infoApi)
+	if err := json.NewEncoder(w).Encode(infoApi); err != nil{
+		http.Error(w, "Something went wrong", http.StatusBadRequest)
+		return
+	}
 }
 
 func GetAllId(w http.ResponseWriter, r *http.Request) {
-	var ids = make([]int, 0)
 
-	for i,_ := range mongodb.Global.GetAllTracks() {
-		ids = append(ids,i)
+	for _,tr := range mongodb.Global.GetAllTracks() {
+		ids = append(ids,tr.Id)
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -148,12 +153,14 @@ func AddTrack(w http.ResponseWriter, r *http.Request){
 
 		// SLICE OF INT TO KEEP TRACK OF THE POST ID'S
 		idCount := mongodb.Global.Count()
-		// Stores the received track in the map
+		idCount++
+		// Unique time
 		now := time.Now()
 		unixNano := now.UnixNano()
 		start := unixNano / 1000000
-		fmt.Printf("%T", start)
+
 		var t Tracks = Tracks {
+			idCount,
 			start,
 			track.Date.String(),
 			track.Pilot,
@@ -161,14 +168,10 @@ func AddTrack(w http.ResponseWriter, r *http.Request){
 			track.GliderID,
 			totalDistance,
 			igcUrl.Url,
-
 		}
 
 		mongodb.Global.Add(t)
 
-
-		//mongodb.GTicker.Add(ti)
-		//fmt.Println("TICKER: ", ti)
 		w.Header().Set("Content-Type", "application/json")
 		// Encodes unique id in json - back to user
 		if err := json.NewEncoder(w).Encode(TrackId{Id: idCount}); err != nil {
@@ -182,74 +185,58 @@ func GetTrack(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
 
-	ts := mongodb.Global.GetAllTracks()
+	trackId,_ := strconv.Atoi(id)
 
-	for i,t := range ts {
-		fmt.Println(i)
-		if strconv.Itoa(i) == id {
-			w.Header().Set("Content-Type", "application/json")
-			// Encodes information for a specific track in json back to user
-			if err := json.NewEncoder(w).Encode(t); err != nil {
-				http.Error(w,"Could not encode", http.StatusInternalServerError)
-			}
-			return
-		}
+	t, ok := mongodb.Global.Get(trackId)
+
+	if !ok {
+		http.Error(w, "", http.StatusNotFound)
+		return
 	}
-	http.Error(w, "", http.StatusNotFound)
-	return
+
+	w.Header().Set("Content-Type", "application/json")
+	// Encodes information for a specific track in json back to user
+	if err := json.NewEncoder(w).Encode(t); err != nil {
+		http.Error(w, "Could not encode", http.StatusInternalServerError)
+		return
+	}
 }
+
 
 func GetTrackProp(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	id 	 := vars["id"]
+	id := vars["id"]
 	prop := vars["prop"]
 
-	ts := mongodb.Global.GetAllTracks()
+	trackId, _ := strconv.Atoi(id)
 
-	for i,_:= range ts {
-		if  strconv.Itoa(i) == id {
-			switch prop {
-			case "pilot":
-				fmt.Fprint(w, ts[i].Pilot)
-				return
-			case "glider":
-				fmt.Fprint(w, ts[i].Glider)
-				return
-			case "glider_id":
-				fmt.Fprint(w, ts[i].GliderId)
-				return
-			case "track_length":
-				fmt.Fprint(w, ts[i].Track_length)
-				return
-			case "H_date":
-				fmt.Fprint(w, ts[i].H_date)
-				return
-			default:
-				// Returns 404 with empty body - when not known method is provided
-				http.Error(w, "", http.StatusNotFound)
-				return
-			}
-		}
+	ts, ok := mongodb.Global.Get(trackId)
+
+	if !ok {
+		http.Error(w,"",http.StatusNotFound)
+		return
 	}
-	http.Error(w, "", http.StatusNotFound)
-	return
-}
 
-
-func LatestTicker(w http.ResponseWriter, r *http.Request){
-	const CAP = 5
-	//ticker := Ticker{}
-	ts := mongodb.Global.GetAllTracks()
-
-	for i,_:= range ts {
-		if (i%CAP) == 0 && i != 0 {
-			return
-		} else {
-			w.Header().Set("Content-Type", "application/json")
-			if err := json.NewEncoder(w).Encode(i); err != nil {
-				fmt.Printf("Something went wrong: %v", err)
-			}
-		}
+	switch prop {
+	case "pilot":
+		fmt.Fprint(w, ts.Pilot)
+		return
+	case "glider":
+		fmt.Fprint(w, ts.Glider)
+		return
+	case "glider_id":
+		fmt.Fprint(w, ts.GliderId)
+		return
+	case "track_length":
+		fmt.Fprint(w, ts.Track_length)
+		return
+	case "H_date":
+		fmt.Fprint(w, ts.H_date)
+		return
+	default:
+		// Returns 404 with empty body - when not known method is provided
+		http.Error(w, "", http.StatusNotFound)
+		return
 	}
 }
 

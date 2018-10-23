@@ -62,7 +62,7 @@ func (db *TracksMongoDB) Count() int {
 	return count
 }
 
-func (db *TracksMongoDB) Get(keyID string) (Tracks, bool) {
+func (db *TracksMongoDB) Get(keyID int) (Tracks, bool) {
 	session, err := mgo.Dial(db.DatabaseURL)
 	if err != nil {
 		panic(err)
@@ -72,10 +72,11 @@ func (db *TracksMongoDB) Get(keyID string) (Tracks, bool) {
 	track := Tracks{}
 	checkOk := true
 
-	err = session.DB(db.DatabaseName).C(db.DatabaseCol).Find(bson.M{"ID":keyID}).One(&track)
+	err = session.DB(db.DatabaseName).C(db.DatabaseCol).Find(bson.M{"id":keyID}).One(&track)
 	if err != nil  {
 		checkOk = false
-		fmt.Println("ERROR: %v", err)
+		return Tracks{},checkOk
+		//fmt.Println("ERROR: %v", err)
 	}
 
 	return track, checkOk
@@ -114,4 +115,22 @@ func(db *TracksMongoDB) AddTicker(ti Ticker) error {
 	}
 
 	return nil
+}
+
+func(db *TracksMongoDB) GetLastTrack() Tracks{
+	session, err := mgo.Dial(db.DatabaseURL)
+	if err != nil {
+		fmt.Printf("Couldn't get last: %v", err)
+	}
+	defer session.Close()
+
+	tr := Tracks{}
+
+	err = session.DB(db.DatabaseName).C(db.DatabaseCol).Find(bson.M{"$last": -1}).One(&tr)
+	if err != nil{
+		fmt.Printf("Error in LastTrack: %v", err)
+		return Tracks{}
+	}
+
+	return tr
 }

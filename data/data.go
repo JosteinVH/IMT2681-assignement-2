@@ -5,7 +5,8 @@ type TrackStorage interface {
 	Add(t Tracks) error
 	Count() int
 	GetAllTracks() []Tracks
-	Get(keyID string) (Tracks, bool)
+	Get(keyID int) (Tracks, bool)
+	GetLastTrack() Tracks
 }
 /*
 type TickerStorage interface {
@@ -14,6 +15,7 @@ type TickerStorage interface {
 }*/
 
 type Tracks struct {
+	Id 			 int `json:"id"`
 	Timestamp	 int64   `json:"timestamp"`
 	H_date       string  `json:"H_date"`
 	Pilot        string  `json:"pilot"`
