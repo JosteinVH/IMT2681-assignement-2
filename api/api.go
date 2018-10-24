@@ -15,7 +15,11 @@ import (
 
 // The time
 var timer = time.Now()
-var ids = make([]int, 0)
+
+const (
+	FIRST = 1
+	CAP = 5
+)
 //TODO Ticker in memory
 //TODO Webhook in memory
 
@@ -116,7 +120,7 @@ func InfoHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetAllId(w http.ResponseWriter, r *http.Request) {
-
+	var ids = make([]int, 0)
 	for _,tr := range mongodb.Global.GetAllTracks() {
 		ids = append(ids,tr.Id)
 	}
@@ -242,38 +246,104 @@ func GetTrackProp(w http.ResponseWriter, r *http.Request) {
 }
 
 func InfoTicker(w http.ResponseWriter, r *http.Request) Ticker{
-	LAST := mongodb.Global.Count()
-	ti := Ticker{}
-	const (
-		FIRST = 1
-		CAP = 5
-		)
+	//LAST := mongodb.Global.Count()
+	// TODO Almost same as "GetTicker" --> See if they can be combined
+	tick := Ticker{}
 
-	for _, v := range mongodb.Global.GetAllTracks() {
-		if v.Id == FIRST {
-			ti.T_start = v.Timestamp
+	allTrack := mongodb.Global.GetAllTracks()
+	tot := mongodb.Global.Count()
+	// TODO Check for empty DB
+	for _, track := range allTrack {
+		if track.Id <= CAP {
+			// Amount of tracks equal to N-page element
+			// or
+			// CAP is greater than total amount of tracks
+			if  track.Id == CAP || CAP >= tot  {
+				tick.T_stop = track.Timestamp
+			}
+			// comment
+			if tick.T_start == 0 {
+				tick.T_start = track.Timestamp
+			}
+			tick.Tracks = append(tick.Tracks, track.Id)
 		}
-		if v.Id == CAP  {
-			//TODO if database is empty
-			ti.T_stop  = v.Timestamp
-		}
-		if v.Id == LAST {
-			ti.T_latest = v.Timestamp
-		}
-		ti.Tracks = append(ti.Tracks,v.Id)
 	}
-	return ti
+	tick.T_latest = allTrack[tot-1].Timestamp
+	return tick
 }
 
 
 
-func GetTicker(w http.ResponseWriter, r *http.Request) {
+func GetInfoTicker(w http.ResponseWriter, r *http.Request) {
 	startTime := time.Now()
 	tick := InfoTicker(w,r)
-	tick.Processing = time.Now().Sub(startTime)
+	tick.Processing = int64((time.Now().Sub(startTime))/1000000)
 
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(tick); err != nil {
 		fmt.Printf("PROBLEM: %v", err)
+	}
+}
+
+func GetLatest(w http.ResponseWriter, r *http.Request) {
+	// Get the last track in db
+	track,ok := mongodb.Global.Get(mongodb.Global.Count())
+
+	if track.Id == mongodb.Global.Count() && ok {
+		fmt.Fprint(w,track.Timestamp)
+		return
+	} else {
+		// No tracks in db
+		http.Error(w,"",http.StatusNoContent)
+	}
+}
+
+func GetTicker(timestamp int) Ticker {
+
+	tick := Ticker{}
+
+	allTrack := mongodb.Global.GetAllTracks()
+	tot := mongodb.Global.Count()
+
+	// Get the last timestamp in db
+	tick.T_latest = allTrack[tot-1].Timestamp
+	// TODO Check for empty DB
+
+	for _,track := range allTrack {
+		if track.Id <= CAP { //track.Id%CAP != 0 &&
+			// Amount of tracks equal to N-page element
+			// or
+			// CAP is greater than total amount of tracks
+			if  track.Id == CAP || CAP >= tot  {
+				tick.T_stop = track.Timestamp
+			}
+			// comment
+			if track.Timestamp > int64(timestamp) && tick.T_start == 0 {
+				tick.T_start = track.Timestamp
+			}
+			tick.Tracks = append(tick.Tracks, track.Id)
+		}
+	}
+
+	return tick
+}
+
+func CalcTime(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	timestamp, err := strconv.Atoi((vars["time"]))
+
+	if err != nil {
+		fmt.Println("Could not convert: %v", err)
+	}
+
+	startTime := time.Now()
+	tick := GetTicker(timestamp)
+	tick.Processing = int64((time.Now().Sub(startTime))/1000000)
+
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(tick); err != nil{
+		http.Error(w, "Could not encode", http.StatusInternalServerError)
+		return
 	}
 }
