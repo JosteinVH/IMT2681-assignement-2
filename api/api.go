@@ -16,13 +16,16 @@ import (
 // The time
 var timer = time.Now()
 
+var ider int = 1
+
 const (
 	FIRST = 1
-	CAP = 5
+	CAP   = 5
 )
+
 //TODO Ticker in memory
 //TODO Webhook in memory
-
+var Urls[] Webhook
 
 func conver(d time.Duration) string {
 	// For string manipulation
@@ -30,18 +33,17 @@ func conver(d time.Duration) string {
 	sec := d.Seconds()
 
 	const (
-		mins	= 60         // Minutes in seconds
-		hours   = 3600	   // Hours in seconds
-		days    = 86400	   // Days in seconds2
-		months  = 2629746  // Months in seconds
-		years   = 31556952 // Years in seconds
+		mins   = 60       // Minutes in seconds
+		hours  = 3600     // Hours in seconds
+		days   = 86400    // Days in seconds2
+		months = 2629746  // Months in seconds
+		years  = 31556952 // Years in seconds
 	)
-
 
 	felles = append(felles, "P")
 
 	// Divide seconds with years in seconds to find number of current years
-	year  := int(sec / years)
+	year := int(sec / years)
 	if year >= 1 {
 		felles = append(felles, strconv.Itoa(year))
 		felles = append(felles, "Y")
@@ -58,7 +60,7 @@ func conver(d time.Duration) string {
 	}
 
 	// Divide seconds with days in seconds to find number of current days
-	day   := int(sec / days)	 // Days in seconds
+	day := int(sec / days) // Days in seconds
 	if day >= 1 {
 		felles = append(felles, strconv.Itoa(day))
 		felles = append(felles, "D")
@@ -69,7 +71,7 @@ func conver(d time.Duration) string {
 	felles = append(felles, "T")
 
 	// Divide seconds with hours in seconds to find number of current hours
-	hour  := int(sec / hours) 	 // Hours in seconds
+	hour := int(sec / hours) // Hours in seconds
 	if hour >= 1 {
 		felles = append(felles, strconv.Itoa(hour))
 		felles = append(felles, "H")
@@ -79,7 +81,7 @@ func conver(d time.Duration) string {
 	}
 
 	// Divide seconds with minutes in seconds to find number of current minutes
-	min   := int(sec / mins) 		 // Minutes in seconds
+	min := int(sec / mins) // Minutes in seconds
 	if min >= 1 {
 		felles = append(felles, strconv.Itoa(min))
 		felles = append(felles, "M")
@@ -98,8 +100,6 @@ func conver(d time.Duration) string {
 	return k
 }
 
-
-
 func InfoHandler(w http.ResponseWriter, r *http.Request) {
 	// Time since application started
 	uptime := time.Since(timer)
@@ -113,7 +113,7 @@ func InfoHandler(w http.ResponseWriter, r *http.Request) {
 	// Set the header to json
 	w.Header().Set("Content-Type", "application/json")
 	// Encodes information to user
-	if err := json.NewEncoder(w).Encode(infoApi); err != nil{
+	if err := json.NewEncoder(w).Encode(infoApi); err != nil {
 		http.Error(w, "Something went wrong", http.StatusBadRequest)
 		return
 	}
@@ -121,20 +121,19 @@ func InfoHandler(w http.ResponseWriter, r *http.Request) {
 
 func GetAllId(w http.ResponseWriter, r *http.Request) {
 	var ids = make([]int, 0)
-	for _,tr := range mongodb.Global.GetAllTracks() {
-		ids = append(ids,tr.Id)
+	for _, tr := range mongodb.Global.GetAllTracks() {
+		ids = append(ids, tr.Id)
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 
-	if  err := json.NewEncoder(w).Encode(ids); err != nil {
+	if err := json.NewEncoder(w).Encode(ids); err != nil {
 		http.Error(w, "Something went wrong", http.StatusBadRequest)
 		return
 	}
 }
 
-
-func AddTrack(w http.ResponseWriter, r *http.Request){
+func AddTrack(w http.ResponseWriter, r *http.Request) {
 	var igcUrl Url
 	// If sent data is actual json
 	if err := json.NewDecoder(r.Body).Decode(&igcUrl); err != nil {
@@ -164,7 +163,7 @@ func AddTrack(w http.ResponseWriter, r *http.Request){
 		unixNano := now.UnixNano()
 		start := unixNano / 1000000
 
-		var t Tracks = Tracks {
+		var t Tracks = Tracks{
 			idCount,
 			start,
 			track.Date.String(),
@@ -176,7 +175,8 @@ func AddTrack(w http.ResponseWriter, r *http.Request){
 		}
 
 		mongodb.Global.Add(t)
-
+		//TODO Call webhook (Send the track?)
+		//RegWebH(w,r)
 		w.Header().Set("Content-Type", "application/json")
 		// Encodes unique id in json - back to user
 		if err := json.NewEncoder(w).Encode(TrackId{Id: idCount}); err != nil {
@@ -190,7 +190,7 @@ func GetTrack(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
 
-	trackId,_ := strconv.Atoi(id)
+	trackId, _ := strconv.Atoi(id)
 
 	t, ok := mongodb.Global.Get(trackId)
 
@@ -207,7 +207,6 @@ func GetTrack(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-
 func GetTrackProp(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
@@ -218,7 +217,7 @@ func GetTrackProp(w http.ResponseWriter, r *http.Request) {
 	ts, ok := mongodb.Global.Get(trackId)
 
 	if !ok {
-		http.Error(w,"",http.StatusNotFound)
+		http.Error(w, "", http.StatusNotFound)
 		return
 	}
 
@@ -245,7 +244,7 @@ func GetTrackProp(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func InfoTicker(w http.ResponseWriter, r *http.Request) Ticker{
+func InfoTicker(w http.ResponseWriter, r *http.Request) Ticker {
 	//LAST := mongodb.Global.Count()
 	// TODO Almost same as "GetTicker" --> See if they can be combined
 	tick := Ticker{}
@@ -258,7 +257,7 @@ func InfoTicker(w http.ResponseWriter, r *http.Request) Ticker{
 			// Amount of tracks equal to N-page element
 			// or
 			// CAP is greater than total amount of tracks
-			if  track.Id == CAP || CAP >= tot  {
+			if track.Id == CAP || CAP >= tot {
 				tick.T_stop = track.Timestamp
 			}
 			// comment
@@ -272,12 +271,10 @@ func InfoTicker(w http.ResponseWriter, r *http.Request) Ticker{
 	return tick
 }
 
-
-
 func GetInfoTicker(w http.ResponseWriter, r *http.Request) {
 	startTime := time.Now()
-	tick := InfoTicker(w,r)
-	tick.Processing = int64((time.Now().Sub(startTime))/1000000)
+	tick := InfoTicker(w, r)
+	tick.Processing = int64((time.Now().Sub(startTime)) / 1000000)
 
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(tick); err != nil {
@@ -287,14 +284,14 @@ func GetInfoTicker(w http.ResponseWriter, r *http.Request) {
 
 func GetLatest(w http.ResponseWriter, r *http.Request) {
 	// Get the last track in db
-	track,ok := mongodb.Global.Get(mongodb.Global.Count())
+	track, ok := mongodb.Global.Get(mongodb.Global.Count())
 
 	if track.Id == mongodb.Global.Count() && ok {
-		fmt.Fprint(w,track.Timestamp)
+		fmt.Fprint(w, track.Timestamp)
 		return
 	} else {
 		// No tracks in db
-		http.Error(w,"",http.StatusNoContent)
+		http.Error(w, "", http.StatusNoContent)
 	}
 }
 
@@ -309,12 +306,12 @@ func GetTicker(timestamp int) Ticker {
 	tick.T_latest = allTrack[tot-1].Timestamp
 	// TODO Check for empty DB
 
-	for _,track := range allTrack {
+	for _, track := range allTrack {
 		if track.Id <= CAP { //track.Id%CAP != 0 &&
 			// Amount of tracks equal to N-page element
 			// or
 			// CAP is greater than total amount of tracks
-			if  track.Id == CAP || CAP >= tot  {
+			if track.Id == CAP || CAP >= tot {
 				tick.T_stop = track.Timestamp
 			}
 			// comment
@@ -338,12 +335,34 @@ func CalcTime(w http.ResponseWriter, r *http.Request) {
 
 	startTime := time.Now()
 	tick := GetTicker(timestamp)
-	tick.Processing = int64((time.Now().Sub(startTime))/1000000)
-
+	tick.Processing = int64((time.Now().Sub(startTime)) / 1000000)
 
 	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(tick); err != nil{
+	if err := json.NewEncoder(w).Encode(tick); err != nil {
 		http.Error(w, "Could not encode", http.StatusInternalServerError)
 		return
 	}
+}
+
+func RegWebH(w http.ResponseWriter, r *http.Request) {
+	var webURL Webhook
+
+	// Register webhookUR
+	if err := json.NewDecoder(r.Body).Decode(&webURL); err != nil {
+		http.Error(w, "Check body", http.StatusBadRequest)
+		return
+	}
+	defer r.Body.Close()
+
+	// Set triggervalue if none is provided
+	if webURL.TriggerValue < 1 {
+		webURL.TriggerValue = 1
+	}
+
+	Urls = append(Urls, webURL)
+	webURL.Id = strconv.Itoa(ider)
+	fmt.Fprintf(w, webURL.Id)
+
+	ider++
+
 }

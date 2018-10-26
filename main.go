@@ -41,6 +41,9 @@ func main() {
 	r.HandleFunc("/api/ticker/", GetInfoTicker).Methods("GET")
 	r.HandleFunc("/api/ticker/{time:[0-9]+}", CalcTime).Methods("GET")
 
+	// Webhook handlers:
+	r.HandleFunc("/api/webhook/new_track/", RegWebH).Methods("POST")
+
 
 	log.Fatal(http.ListenAndServe(":"+port, r))
 }

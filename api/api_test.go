@@ -1,16 +1,15 @@
 package api
 
 import (
+	. "IMT2681-assignement-2/data"
 	"bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	. "IMT2681-assignement-2/data"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 )
-
 
 func TestInfoHandler(t *testing.T) {
 
@@ -23,9 +22,9 @@ func TestInfoHandler(t *testing.T) {
 		expInfo    string
 		expVer     string
 	}{
-		{met: "GET", url: "http://localhost:8080/igcinfo/", statusCode: http.StatusNotFound },
-		{met: "GET", url: "http://notworking.com/igcinfo/api", statusCode: http.StatusNotFound },
-		{met: "GET", url: "http://localhost:8080/igcinfo/api/", statusCode: http.StatusOK, expTime:"PT0S", expInfo:"Service for IGC tracks.", expVer:"v1"},
+		{met: "GET", url: "http://localhost:8080/igcinfo/", statusCode: http.StatusNotFound},
+		{met: "GET", url: "http://notworking.com/igcinfo/api", statusCode: http.StatusNotFound},
+		{met: "GET", url: "http://localhost:8080/igcinfo/api/", statusCode: http.StatusOK, expTime: "PT0S", expInfo: "Service for IGC tracks.", expVer: "v1"},
 	}
 
 	for _, tc := range tt {
@@ -57,7 +56,7 @@ func TestInfoHandler(t *testing.T) {
 		}
 
 		if tc.expTime != info.Uptime {
-			t.Errorf("Expected value: %v, got:  %v", tc.expTime,info.Uptime)
+			t.Errorf("Expected value: %v, got:  %v", tc.expTime, info.Uptime)
 		}
 
 		if tc.expInfo != info.Info {
@@ -76,10 +75,10 @@ func TestGetAPI(t *testing.T) {
 		met        string
 		url        string
 		statusCode int
-		lenOId	   int
+		lenOId     int
 	}{
-		{met: "GET", url: "http://localhost:8080/igcinfo/", statusCode: http.StatusOK, lenOId: 0 },
-		{met: "POST", url: "http://notworking.com/igcinfo/api", statusCode: http.StatusNotFound },
+		{met: "GET", url: "http://localhost:8080/igcinfo/", statusCode: http.StatusOK, lenOId: 0},
+		{met: "POST", url: "http://notworking.com/igcinfo/api", statusCode: http.StatusNotFound},
 	}
 
 	for _, tc := range tt {
@@ -101,7 +100,7 @@ func TestGetAPI(t *testing.T) {
 				t.Errorf("Expected statuscode %v, got %v", tc.statusCode, res.StatusCode)
 			}
 
-			var testId [] int
+			var testId []int
 
 			if err := json.NewDecoder(res.Body).Decode(&testId); err != nil {
 				t.Fatalf("Could not parse json %v", err)
@@ -116,14 +115,13 @@ func TestGetAPI(t *testing.T) {
 
 }
 
-
 /*
 	Testing status code
 */
-func TestIdHandler(t *testing.T){
+func TestIdHandler(t *testing.T) {
 	tt := []struct {
 		met        string
-		url           string
+		url        string
 		statusCode int
 	}{
 		{met: "GET", url: "localhost:8080/api/igc/1", statusCode: http.StatusNotFound},
@@ -217,13 +215,12 @@ func TestApiHandler(t *testing.T) {
 
 	rec := httptest.NewRecorder()
 
-
 	ApiHandler(rec, req)
 
 	res := rec.Result()
 
 	// Check is received status code corresponds to expected
-	if res.StatusCode != http.StatusOK{
+	if res.StatusCode != http.StatusOK {
 		t.Errorf("Expected status %v: got %v", http.StatusOK, res.StatusCode)
 	}
 }
@@ -234,7 +231,6 @@ func TestCheckHandler(t *testing.T) {
 		met        string
 		url        string
 		statusCode int
-
 	}{
 		{met: "GET", url: "localhost:8080/api/igc", statusCode: http.StatusOK},
 	}
@@ -247,11 +243,11 @@ func TestCheckHandler(t *testing.T) {
 		}
 
 		var track Tracks = Tracks{
-			H_date: "123",
-			Pilot: "Michael",
-			Glider:"x2",
-			GliderId:"991",
-			Track_length:443,
+			H_date:       "123",
+			Pilot:        "Michael",
+			Glider:       "x2",
+			GliderId:     "991",
+			Track_length: 443,
 		}
 
 		rec := httptest.NewRecorder()
