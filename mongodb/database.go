@@ -8,9 +8,16 @@ import (
 )
 
 var Global TrackStorage
+var G_Webhook WebhookStorage
 //var GTicker TickerStorage
 
 type TracksMongoDB struct {
+	DatabaseURL  string
+	DatabaseName string
+	DatabaseCol  string
+}
+
+type WebhookMongoDB struct {
 	DatabaseURL  string
 	DatabaseName string
 	DatabaseCol  string
@@ -134,3 +141,42 @@ func(db *TracksMongoDB) GetLastTrack() Tracks{
 
 	return tr
 }
+
+
+
+func (dbWB *WebhookMongoDB) Add(w Webhook) error {
+	// Make sure we can connect to database
+	session, err := mgo.Dial(dbWB.DatabaseURL)
+	if err != nil {
+		panic(err)
+	}
+	defer session.Close()
+
+	err = session.DB(dbWB.DatabaseName).C(dbWB.DatabaseCol).Insert(w)
+	if err != nil {
+		fmt.Printf("Error in insert(): %v", err.Error())
+		return err
+	}
+
+	return nil
+}
+
+
+func (dbWB *WebhookMongoDB) GetAllWebH() []Webhook{
+	session, err := mgo.Dial(dbWB.DatabaseURL)
+	if err != nil{
+		panic(err)
+	}
+	defer session.Close()
+
+	var all []Webhook
+
+	err = session.DB(dbWB.DatabaseName).C(dbWB.DatabaseCol).Find(bson.M{}).All(&all)
+	if err != nil {
+		fmt.Println("%v",err)
+		return []Webhook{}
+	}
+
+	return all
+}
+

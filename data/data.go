@@ -8,14 +8,15 @@ type TrackStorage interface {
 	Get(keyID int) (Tracks, bool)
 	GetLastTrack() Tracks
 }
-/*
-type TickerStorage interface {
-	//Init()
-	Add(ti Ticker) error
-}*/
+
+type WebhookStorage interface {
+	Add(w Webhook) error
+	GetAllWebH() []Webhook
+	UpdateW(count int)
+}
 
 type Tracks struct {
-	Id 			 int `json:"id"`
+	Id 			 int 	 `json:"id"`
 	Timestamp	 int64   `json:"timestamp"`
 	H_date       string  `json:"H_date"`
 	Pilot        string  `json:"pilot"`
@@ -51,8 +52,12 @@ type Ticker struct {
 }
 
 type Webhook struct {
-	Id 		   string  `json:"id"`
 	WebhookUrl string `json:"webhookURL"`
 	TriggerValue int64 `json:"minTriggerValue"`
-	Count		 int64
+	Count		 int
 }
+
+type WebhookInfo struct {
+	Text string `json:"text"`
+}
+

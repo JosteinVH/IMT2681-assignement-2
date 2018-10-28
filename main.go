@@ -17,11 +17,10 @@ func main() {
 	}
 
 	//INIT DATABASE
-
 	mongodb.Global = &mongodb.TracksMongoDB{
-		"mongodb://heihade:heihade123@ds131983.mlab.com:31983/josteivhdb",
-		"josteivhdb",
-		"track",
+		os.Getenv("DB_URL"),
+		os.Getenv("DB_NAME"),
+		os.Getenv("DB_COL_T"),
 	}
 
 	mongodb.Global.Init()
@@ -43,6 +42,9 @@ func main() {
 
 	// Webhook handlers:
 	r.HandleFunc("/api/webhook/new_track/", RegWebH).Methods("POST")
+	r.HandleFunc("/api/webhook/new_track/{id:[0-9]+}", GetWebH).Methods("GET")
+	r.HandleFunc("/api/webhook/new_track/{id:[0-9]+}", DelWebH).Methods("DELETE")
+
 
 
 	log.Fatal(http.ListenAndServe(":"+port, r))

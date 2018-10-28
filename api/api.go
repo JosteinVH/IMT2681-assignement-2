@@ -3,6 +3,7 @@ package api
 import (
 	. "IMT2681-assignement-2/data"
 	"IMT2681-assignement-2/mongodb"
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
@@ -15,8 +16,11 @@ import (
 
 // The time
 var timer = time.Now()
-
+var i int = 0
 var ider int = 1
+
+//TODO Webhook in memory
+var Urls = make(map[string] Webhook)
 
 const (
 	FIRST = 1
@@ -24,8 +28,6 @@ const (
 )
 
 //TODO Ticker in memory
-//TODO Webhook in memory
-var Urls[] Webhook
 
 func conver(d time.Duration) string {
 	// For string manipulation
@@ -174,9 +176,13 @@ func AddTrack(w http.ResponseWriter, r *http.Request) {
 			igcUrl.Url,
 		}
 
-		mongodb.Global.Add(t)
-		//TODO Call webhook (Send the track?)
-		//RegWebH(w,r)
+		err := mongodb.Global.Add(t)
+		if err != nil {
+			//TODO Handle error
+		}
+
+		calcProcTime(idCount)
+
 		w.Header().Set("Content-Type", "application/json")
 		// Encodes unique id in json - back to user
 		if err := json.NewEncoder(w).Encode(TrackId{Id: idCount}); err != nil {
@@ -245,8 +251,6 @@ func GetTrackProp(w http.ResponseWriter, r *http.Request) {
 }
 
 func InfoTicker(w http.ResponseWriter, r *http.Request) Ticker {
-	//LAST := mongodb.Global.Count()
-	// TODO Almost same as "GetTicker" --> See if they can be combined
 	tick := Ticker{}
 
 	allTrack := mongodb.Global.GetAllTracks()
@@ -345,24 +349,100 @@ func CalcTime(w http.ResponseWriter, r *http.Request) {
 }
 
 func RegWebH(w http.ResponseWriter, r *http.Request) {
-	var webURL Webhook
 
-	// Register webhookUR
+	var webURL Webhook
+	webID := strconv.Itoa(ider)
 	if err := json.NewDecoder(r.Body).Decode(&webURL); err != nil {
 		http.Error(w, "Check body", http.StatusBadRequest)
 		return
 	}
 	defer r.Body.Close()
 
+	// Register webhookUR
+	for _, web := range Urls {
+		fmt.Println("Går inn")
+		// Already exists
+		if web.WebhookUrl == webURL.WebhookUrl {
+			fmt.Fprintf(w, "Already exists")
+			return
+		}
+	}
+
 	// Set triggervalue if none is provided
 	if webURL.TriggerValue < 1 {
 		webURL.TriggerValue = 1
 	}
-
-	Urls = append(Urls, webURL)
-	webURL.Id = strconv.Itoa(ider)
-	fmt.Fprintf(w, webURL.Id)
+	// Keep webhook in memory
+	Urls[webID] = Webhook{
+		webURL.WebhookUrl,
+		webURL.TriggerValue,
+		webURL.Count,
+	}
+	fmt.Fprintf(w, webID)
 
 	ider++
 
 }
+var test []string
+func calcProcTime(id int) {
+
+	//var k string
+	test = append(test,"id")
+	test = append(test,strconv.Itoa(id))
+	k := strings.Join(test, "")
+	fmt.Println(test)
+
+	//t := fmt.Sprintf("id%d",id)
+
+	tot := mongodb.Global.GetAllTracks()
+	count := mongodb.Global.Count()
+
+	url := WebhookInfo{}
+	for _, webH := range Urls {
+	//	i++
+		webH.Count++
+		fmt.Println(webH.Count)
+		if webH.Count >= int(webH.TriggerValue) {
+			startTime := time.Now()
+			//TODO fix processing time
+			//webH := UpdateWebhooks(id)
+			processing := (time.Now().Sub(startTime))
+
+			fmt.Println(processing)
+			// TODO Print out all track idsz
+			url.Text = "Latest timestamp: "+strconv.Itoa(int(tot[count-1].Timestamp)) + "\n" + strconv.Itoa(webH.Count) + " new tracks are ID: " + k + "\n"+ strconv.Itoa(int(processing))
+
+
+			b, err := json.Marshal(url)
+			if err != nil {
+				//TODO handle err
+			}
+
+			http.Post(webH.WebhookUrl, "application-json", bytes.NewBuffer((b)))
+		}
+		fmt.Println("WebH: ", webH.Count)
+	}
+}
+
+
+func GetWebH(w http.ResponseWriter, r *http.Request){
+	vars := mux.Vars(r)
+	webID:= vars["id"]
+
+	fmt.Println(Urls)
+	for i, wb := range Urls {
+		if i == webID {
+			w.Header().Set("Content-Type", "application/json")
+			if err := json.NewEncoder(w).Encode(wb); err != nil {
+				http.Error(w,"Could not encode", http.StatusInternalServerError)
+			}
+			return
+		}
+	}
+	http.Error(w, "No such ID '"+webID+"'",http.StatusNotFound)
+}
+
+func DelWebH(w http.ResponseWriter, r *http.Request){
+	//TODO Delete Webhook
+}
+
