@@ -3,6 +3,7 @@ package main
 import (
 	. "IMT2681-assignement-2/api"
 	"IMT2681-assignement-2/mongodb"
+	"IMT2681-assignement-2/webhook"
 	"github.com/gorilla/mux"
 	"log"
 	"net/http"
@@ -32,6 +33,7 @@ func main() {
 
 	mongodb.Global.Init()
 
+
 	// Set up handlers
 	r := mux.NewRouter()
 
@@ -57,8 +59,9 @@ func main() {
 	r.HandleFunc("/admin/api/tracks_count/{code:[a-z]+}", GetCount).Methods("GET")
 	r.HandleFunc("/admin/api/tracks/{code:[a-z]+}", DelTracks).Methods("DELETE")
 
-
+	go webhook.Tracks()
+	/*varwg sync.WaitGroup wgAdd(1)
+	go func() { webhook.Tracks()
+	wg.Done()}()*/
 	log.Fatal(http.ListenAndServe(":"+port, r))
-
-
 }
