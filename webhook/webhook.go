@@ -18,7 +18,8 @@ func SendDiscordLogEntry(now int,prev int) {
 
 	if now != prev {
 		info := data.WebhookInfo{}
-		info.Text = "Number of track: "+strconv.Itoa(now)+" previous: "+strconv.Itoa(now)+"\n"
+		diff := now - prev
+		info.Text = "Behind  "+strconv.Itoa(diff)+" tracks"
 		raw, _ := json.Marshal(info)
 		resp, err := http.Post(TheDiscordWebhook, "application/json", bytes.NewBuffer(raw))
 
@@ -31,7 +32,7 @@ func SendDiscordLogEntry(now int,prev int) {
 
 func Tracks() {
 	for {
-		delay := time.Second * 10
+		delay := time.Minute * 10
 		prev := mongodb.Global.Count()
 		time.Sleep(delay)
 		now := mongodb.Global.Count()
