@@ -14,6 +14,13 @@ import (
 
 
 const TheDiscordWebhook = "https://hooks.slack.com/services/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"
+
+/*
+Every 10minute the number of documents is
+being compared before and after. Webhook
+sends notification if it differs
+*/
+
 func SendDiscordLogEntry(now int,prev int) {
 
 	if now != prev {

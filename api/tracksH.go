@@ -26,8 +26,6 @@ const (
 	CAP   = 5
 )
 
-//TODO Ticker in memory
-
 func conver(d time.Duration) string {
 	// For string manipulation
 	var felles []string

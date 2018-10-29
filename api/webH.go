@@ -47,7 +47,7 @@ func calcProcTime(id int) {
 	startTime := time.Now()
 	text, webURL := NyFunc()
 	if text == "" && webURL == "" {
-		//TODO something something
+		fmt.Printf("No such url")
 	}
 	processing := (int((time.Now().Sub(startTime)))/ 1000000)
 

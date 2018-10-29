@@ -8,6 +8,9 @@ import (
 	"strconv"
 )
 
+/*
+Delete every track in db
+*/
 func DelTracks(w http.ResponseWriter, r *http.Request)  {
 	vars := mux.Vars(r)
 	code := vars["code"]

@@ -36,6 +36,9 @@ func (db *TracksMongoDB) Init() {
 	defer session.Close()
 }
 
+/*
+Add adds new tracks to the db.
+*/
 func (db *TracksMongoDB) Add(t Tracks) error {
 	// Make sure we can connect to database
 	session, err := mgo.Dial(db.DatabaseURL)
@@ -53,6 +56,9 @@ func (db *TracksMongoDB) Add(t Tracks) error {
 	return nil
 }
 
+/*
+Count returns the current count of the tracks in in-memory storage.
+*/
 func (db *TracksMongoDB) Count() int {
 	session, err := mgo.Dial(db.DatabaseURL)
 	if err != nil{
@@ -68,6 +74,10 @@ func (db *TracksMongoDB) Count() int {
 
 	return count
 }
+
+/*
+Get returns a track with a given ID or empty track struct.
+*/
 
 func (db *TracksMongoDB) Get(keyID int) (Tracks, bool) {
 	session, err := mgo.Dial(db.DatabaseURL)
@@ -89,6 +99,10 @@ func (db *TracksMongoDB) Get(keyID int) (Tracks, bool) {
 	return track, checkOk
 }
 
+
+/*
+GetAll returns a slice with all the tracks.
+*/
 func (db *TracksMongoDB) GetAllTracks() []Tracks{
 	session, err := mgo.Dial(db.DatabaseURL)
 	if err != nil{
@@ -107,23 +121,9 @@ func (db *TracksMongoDB) GetAllTracks() []Tracks{
 	return all
 }
 
-
-func(db *TracksMongoDB) AddTicker(ti Ticker) error {
-	session, err := mgo.Dial(db.DatabaseURL)
-	if err != nil {
-		fmt.Printf("ERROR TICKER: %v", err)
-		//panic(err)
-	}
-	defer session.Close()
-
-	err = session.DB(db.DatabaseName).C(db.DatabaseCol).Insert(ti)
-	if err != nil{
-		fmt.Printf("Error in insert: %v", err)
-	}
-
-	return nil
-}
-
+/*
+Delete every track in database
+*/
 func (db *TracksMongoDB) DelAll() bool {
 	session, err := mgo.Dial(db.DatabaseURL)
 	if err != nil {
@@ -142,9 +142,12 @@ func (db *TracksMongoDB) DelAll() bool {
 	return ok
 }
 
-
+/*
+For testing purpose*
+Init initializes the mongo storage.
+ */
 func (dbWB *WebhookMongoDB) Init() {
-	// Make sure we can connect to database
+
 	session, err := mgo.Dial(dbWB.DatabaseURL)
 	if err != nil {
 		//handle error
@@ -173,6 +176,9 @@ func (dbWB *WebhookMongoDB) Add(w Webhook) error {
 }
 
 
+/*
+GetAll returns a slice with all the tracks.
+*/
 func (dbWB *WebhookMongoDB) GetAllWebH() []Webhook{
 	session, err := mgo.Dial(dbWB.DatabaseURL)
 	if err != nil{
@@ -191,22 +197,9 @@ func (dbWB *WebhookMongoDB) GetAllWebH() []Webhook{
 	return all
 }
 
-
-func (dbWB *WebhookMongoDB)	UpdateW(url string,count int) {
-	colQuerier := bson.M{"webhookurl": url}
-	change := bson.M{"$set": bson.M{"count": count}}
-	session, err := mgo.Dial(dbWB.DatabaseURL)
-	if err != nil{
-		panic(err)
-	}
-	defer session.Close()
-
-	err = session.DB(dbWB.DatabaseName).C(dbWB.DatabaseCol).Update(colQuerier, change)
-	if err != nil {
-		fmt.Printf("%v",err)
-	}
-}
-
+/*
+Get returns a webhook with a given ID or empty webhook struct.
+*/
 func (dbWB *WebhookMongoDB) GetWebhook(keyID string) (Webhook, bool) {
 	session, err := mgo.Dial(dbWB.DatabaseURL)
 	if err != nil {
@@ -226,7 +219,9 @@ func (dbWB *WebhookMongoDB) GetWebhook(keyID string) (Webhook, bool) {
 	return webH, checkOk
 }
 
-
+/*
+Delete specific webhook in database
+*/
 func (dbWB *WebhookMongoDB) DelWebhook(keyID string) bool{
 	session, err := mgo.Dial(dbWB.DatabaseURL)
 	if err != nil {
@@ -246,8 +241,11 @@ func (dbWB *WebhookMongoDB) DelWebhook(keyID string) bool{
 
 	return ok
 }
+/*
+Count returns the current count of the tracks in in-memory storage.
+Made it for testing**
+*/
 
-// Made it for testing
 func (dbWB *WebhookMongoDB) Count() int {
 	session, err := mgo.Dial(dbWB.DatabaseURL)
 	if err != nil{
