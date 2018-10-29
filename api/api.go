@@ -426,6 +426,7 @@ func GetWebH(w http.ResponseWriter, r *http.Request){
 	if err := json.NewEncoder(w).Encode(webH); err != nil {
 		http.Error(w,"Could not encode", http.StatusInternalServerError)
 	}
+
 }
 
 func DelWebH(w http.ResponseWriter, r *http.Request){

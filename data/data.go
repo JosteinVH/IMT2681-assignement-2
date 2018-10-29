@@ -62,4 +62,3 @@ type Webhook struct {
 type WebhookInfo struct {
 	Text string `json:"text"`
 }
-

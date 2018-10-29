@@ -56,9 +56,10 @@ func main() {
 
 
 	// Admin handlers
-	r.HandleFunc("/admin/api/tracks_count/{code:[a-z]+}", GetCount).Methods("GET")
-	r.HandleFunc("/admin/api/tracks/{code:[a-z]+}", DelTracks).Methods("DELETE")
+	r.HandleFunc("/paragliding/admin/api/tracks_count/{code:[a-z]+}", GetCount).Methods("GET")
+	r.HandleFunc("/paragliding/admin/api/tracks/{code:[a-z]+}", DelTracks).Methods("DELETE")
 
+	// Seperate thread
 	go webhook.Tracks()
 
 	log.Fatal(http.ListenAndServe(":"+port, r))
