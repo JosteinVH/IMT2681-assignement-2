@@ -1,7 +1,7 @@
 package api
 
 import (
-	."IMT2681-assignement-2/data"
+	. "IMT2681-assignement-2/data"
 	"IMT2681-assignement-2/mongodb"
 	"bytes"
 	"encoding/json"
@@ -40,6 +40,9 @@ func RegWebH(w http.ResponseWriter, r *http.Request) {
 	ider++
 }
 
+/**
+calcProcTime invokes the webook by sending information/
+ */
 func calcProcTime(id int) {
 	test = append(test, strconv.Itoa(id))
 
@@ -47,7 +50,7 @@ func calcProcTime(id int) {
 	startTime := time.Now()
 	text, webURL := NyFunc()
 	if text == "" && webURL == "" {
-		fmt.Printf("No such url")
+		return
 	}
 	processing := (int((time.Now().Sub(startTime)))/ 1000000)
 
@@ -60,6 +63,9 @@ func calcProcTime(id int) {
 	http.Post(webURL, "application-json", bytes.NewBuffer((b)))
 }
 
+/*
+*Concatinate the webhookInfromation string
+ */
 func NyFunc() (string,string){
 	totTracks := mongodb.Global.GetAllTracks()
 	count := mongodb.Global.Count()
@@ -77,6 +83,10 @@ func NyFunc() (string,string){
 	return "",""
 }
 
+
+/*
+GetWebH returns information for specific webhook/
+ */
 func GetWebH(w http.ResponseWriter, r *http.Request){
 	vars := mux.Vars(r)
 	webID:= vars["id"]
@@ -94,6 +104,9 @@ func GetWebH(w http.ResponseWriter, r *http.Request){
 
 }
 
+/*
+GetDelWeh deletes a specific webhook provided by user/
+*/
 func DelWebH(w http.ResponseWriter, r *http.Request){
 	vars := mux.Vars(r)
 	webID:= vars["id"]
@@ -115,6 +128,9 @@ func DelWebH(w http.ResponseWriter, r *http.Request){
 	}
 }
 
+/*
+Get the newest track ids
+*/
 func Convertion(count int) string{
 	var testing []string
 	for i := len(test)-count; i<len(test);i++  {

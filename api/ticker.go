@@ -1,8 +1,8 @@
 package api
 
 import (
-	"IMT2681-assignement-2/mongodb"
 	. "IMT2681-assignement-2/data"
+	"IMT2681-assignement-2/mongodb"
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
@@ -98,6 +98,9 @@ func GetTicker(timestamp int) Ticker {
 	return tick
 }
 
+/*
+Returns timestamp of tracks higher than the parameter in url
+*/
 func CalcTime(w http.ResponseWriter, r *http.Request) {
 	test := Ticker{}
 	vars := mux.Vars(r)
@@ -109,6 +112,7 @@ func CalcTime(w http.ResponseWriter, r *http.Request) {
 	}
 
 	startTime := time.Now()
+	// Processing time
 	tick := GetTicker(timestamp)
 	if tick.T_start == test.T_start {
 		http.Error(w,"db is empty", http.StatusNotFound)

@@ -27,6 +27,9 @@ func DelTracks(w http.ResponseWriter, r *http.Request)  {
 	}
 }
 
+/*
+Get number of tracks in db
+*/
 func GetCount(w http.ResponseWriter, r *http.Request)  {
 	vars := mux.Vars(r)
 	code := vars["code"]
