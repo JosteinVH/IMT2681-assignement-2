@@ -9,9 +9,9 @@ The performance overall is reduced, to the benefit of data availability.
 **goigc** is used for processing of the igc data https://github.com/marni/goigc
 
 ### Heroku
-xxx
+https://paragliding-josteivh.herokuapp.com/paragliding/
 ### Openstack
-xxx
+	10.212.136.235:8080/paragliding/
 
 ---
 
