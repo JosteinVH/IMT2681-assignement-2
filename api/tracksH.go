@@ -249,8 +249,6 @@ func GetTrackProp(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-
-
 func Redirect(w http.ResponseWriter, r *http.Request){
 	http.Redirect(w, r, r.URL.Path+"/api/", 301)
 }
