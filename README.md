@@ -3,7 +3,8 @@
 ### Description
 Similar to Assignemt 1 - the in memory storage is moved to mongodb - and webhook implemented.
 
-Submitted track files is and webhooks, as of requirement, are being stored in mongodb.
+Submitted track files is and webhooks, as of requirement, are being stored in mongodb. Reason for this is because it's benefical instead of data being deleted e.g from a system crash, or reboot. This makes the application dependent on the database. Time is precious, and the cost it takes to query data from database is noticeable.
+The performance overall is reduced, to the benefit of data availability.
 
 **goigc** is used for processing of the igc data https://github.com/marni/goigc
 
