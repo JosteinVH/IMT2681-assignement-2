@@ -142,6 +142,19 @@ func(db *TracksMongoDB) GetLastTrack() Tracks{
 	return tr
 }
 
+func (db *TracksMongoDB) DelAll() {
+	session, err := mgo.Dial(db.DatabaseURL)
+	if err != nil {
+		fmt.Printf("Couldn't get last: %v", err)
+	}
+	defer session.Close()
+
+	_,err = session.DB(db.DatabaseName).C(db.DatabaseCol).RemoveAll(bson.M{})
+
+	if err != nil{
+		fmt.Printf("Error in LastTrack: %v", err)
+	}
+}
 
 
 func (dbWB *WebhookMongoDB) Add(w Webhook) error {
@@ -179,4 +192,61 @@ func (dbWB *WebhookMongoDB) GetAllWebH() []Webhook{
 
 	return all
 }
+
+
+func (dbWB *WebhookMongoDB)	UpdateW(url string,count int) {
+	colQuerier := bson.M{"webhookurl": url}
+	change := bson.M{"$set": bson.M{"count": count}}
+	session, err := mgo.Dial(dbWB.DatabaseURL)
+	if err != nil{
+		panic(err)
+	}
+	defer session.Close()
+
+	err = session.DB(dbWB.DatabaseName).C(dbWB.DatabaseCol).Update(colQuerier, change)
+	if err != nil {
+		fmt.Println("%v",err)
+	}
+}
+
+func (dbWB *WebhookMongoDB) GetWebhook(keyID string) (Webhook, bool) {
+	session, err := mgo.Dial(dbWB.DatabaseURL)
+	if err != nil {
+		panic(err)
+	}
+	defer session.Close()
+
+	webH := Webhook{}
+	checkOk := true
+
+	err = session.DB(dbWB.DatabaseName).C(dbWB.DatabaseCol).Find(bson.M{"id":keyID}).One(&webH)
+	if err != nil  {
+		checkOk = false
+		return Webhook{},checkOk
+	}
+
+	return webH, checkOk
+}
+
+
+func (dbWB *WebhookMongoDB) DelWebhook(keyID string) bool{
+	session, err := mgo.Dial(dbWB.DatabaseURL)
+	if err != nil {
+		panic(err)
+	}
+	defer session.Close()
+
+	ok := true
+
+	err = session.DB(dbWB.DatabaseName).C(dbWB.DatabaseCol).Remove(bson.M{"id": keyID})
+	if err != nil {
+		fmt.Println("Remove failed: %v",err)
+		ok = false
+		return ok
+
+	}
+
+	return ok
+}
+
 

@@ -23,6 +23,13 @@ func main() {
 		os.Getenv("DB_COL_T"),
 	}
 
+
+	mongodb.G_Webhook = &mongodb.WebhookMongoDB{
+		os.Getenv("DB_URL"),
+		os.Getenv("DB_NAME"),
+		"webhook",
+	}
+
 	mongodb.Global.Init()
 
 	// Set up handlers
@@ -45,6 +52,10 @@ func main() {
 	r.HandleFunc("/api/webhook/new_track/{id:[0-9]+}", GetWebH).Methods("GET")
 	r.HandleFunc("/api/webhook/new_track/{id:[0-9]+}", DelWebH).Methods("DELETE")
 
+
+	// Admin handlers
+	r.HandleFunc("/admin/api/tracks_count/{code:[a-z]+}", GetCount).Methods("GET")
+	r.HandleFunc("/admin/api/tracks/{code:[a-z]+}", DelTracks).Methods("DELETE")
 
 
 	log.Fatal(http.ListenAndServe(":"+port, r))

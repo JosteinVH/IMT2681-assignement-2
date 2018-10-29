@@ -178,7 +178,7 @@ func AddTrack(w http.ResponseWriter, r *http.Request) {
 
 		err := mongodb.Global.Add(t)
 		if err != nil {
-			//TODO Handle error
+			http.Error(w, "Failed to add", http.StatusNotFound)
 		}
 
 		calcProcTime(idCount)
@@ -349,78 +349,57 @@ func CalcTime(w http.ResponseWriter, r *http.Request) {
 }
 
 func RegWebH(w http.ResponseWriter, r *http.Request) {
-
 	var webURL Webhook
-	webID := strconv.Itoa(ider)
+
 	if err := json.NewDecoder(r.Body).Decode(&webURL); err != nil {
 		http.Error(w, "Check body", http.StatusBadRequest)
 		return
 	}
 	defer r.Body.Close()
 
-	// Register webhookUR
-	for _, web := range Urls {
-		fmt.Println("Går inn")
-		// Already exists
-		if web.WebhookUrl == webURL.WebhookUrl {
-			fmt.Fprintf(w, "Already exists")
-			return
-		}
-	}
 
 	// Set triggervalue if none is provided
 	if webURL.TriggerValue < 1 {
 		webURL.TriggerValue = 1
 	}
-	// Keep webhook in memory
-	Urls[webID] = Webhook{
-		webURL.WebhookUrl,
-		webURL.TriggerValue,
-		webURL.Count,
+	webURL.Id = strconv.Itoa(ider)
+	// Register webhookUR
+	for _, wH := range mongodb.G_Webhook.GetAllWebH() {
+		if wH.WebhookUrl == webURL.WebhookUrl {
+			http.Error(w,"Already exists", http.StatusConflict)
+			return
+		}
 	}
-	fmt.Fprintf(w, webID)
-
+	mongodb.G_Webhook.Add(webURL)
+	fmt.Fprintf(w, webURL.Id)
 	ider++
-
 }
+
 var test []string
 func calcProcTime(id int) {
+	test = append(test, strconv.Itoa(id))
 
-	//var k string
-	test = append(test,"id")
-	test = append(test,strconv.Itoa(id))
-	k := strings.Join(test, "")
-	fmt.Println(test)
-
-	//t := fmt.Sprintf("id%d",id)
-
-	tot := mongodb.Global.GetAllTracks()
+	totTracks := mongodb.Global.GetAllTracks()
 	count := mongodb.Global.Count()
+	allWebH := mongodb.G_Webhook.GetAllWebH()
 
-	url := WebhookInfo{}
-	for _, webH := range Urls {
-	//	i++
-		webH.Count++
-		fmt.Println(webH.Count)
-		if webH.Count >= int(webH.TriggerValue) {
+	for _, wH := range allWebH {
+		fmt.Println(wH.TriggerValue)
+		if len(test) % wH.TriggerValue == 0 {
+			url := WebhookInfo{}
+
 			startTime := time.Now()
-			//TODO fix processing time
-			//webH := UpdateWebhooks(id)
-			processing := (time.Now().Sub(startTime))
+			javel := Convertion(wH.TriggerValue)
+			processing := int((time.Now().Sub(startTime)))
 
-			fmt.Println(processing)
-			// TODO Print out all track idsz
-			url.Text = "Latest timestamp: "+strconv.Itoa(int(tot[count-1].Timestamp)) + "\n" + strconv.Itoa(webH.Count) + " new tracks are ID: " + k + "\n"+ strconv.Itoa(int(processing))
-
-
+			url.Text = "Latest timestamp: " + strconv.Itoa(int(totTracks[count-1].Timestamp)) + "\n" + strconv.Itoa(wH.TriggerValue) + " new tracks are ID: " + javel + "\n" + strconv.Itoa(processing)
 			b, err := json.Marshal(url)
 			if err != nil {
-				//TODO handle err
+				fmt.Println("Could not marshal: %v", err)
+				return
 			}
-
-			http.Post(webH.WebhookUrl, "application-json", bytes.NewBuffer((b)))
+			http.Post(wH.WebhookUrl, "application-json", bytes.NewBuffer((b)))
 		}
-		fmt.Println("WebH: ", webH.Count)
 	}
 }
 
@@ -429,20 +408,73 @@ func GetWebH(w http.ResponseWriter, r *http.Request){
 	vars := mux.Vars(r)
 	webID:= vars["id"]
 
-	fmt.Println(Urls)
-	for i, wb := range Urls {
-		if i == webID {
-			w.Header().Set("Content-Type", "application/json")
-			if err := json.NewEncoder(w).Encode(wb); err != nil {
-				http.Error(w,"Could not encode", http.StatusInternalServerError)
-			}
-			return
-		}
+	webH, ok := mongodb.G_Webhook.GetWebhook(webID)
+	if !ok {
+		http.Error(w, "No such ID '"+webID+"'",http.StatusNotFound)
+		return
 	}
-	http.Error(w, "No such ID '"+webID+"'",http.StatusNotFound)
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(webH); err != nil {
+		http.Error(w,"Could not encode", http.StatusInternalServerError)
+	}
 }
 
 func DelWebH(w http.ResponseWriter, r *http.Request){
-	//TODO Delete Webhook
+	vars := mux.Vars(r)
+	webID:= vars["id"]
+
+	webH, check := mongodb.G_Webhook.GetWebhook(webID)
+
+	if !check {
+		http.Error(w,"Could not get webhook", http.StatusConflict)
+	}
+
+	if err := json.NewEncoder(w).Encode(webH); err != nil {
+		http.Error(w,"Failed to decode", http.StatusNotFound)
+	}
+
+	ok := mongodb.G_Webhook.DelWebhook(webID)
+	if !ok {
+		http.Error(w,"Failed to delete", http.StatusInternalServerError)
+	}
 }
+
+func DelTracks(w http.ResponseWriter, r *http.Request)  {
+	vars := mux.Vars(r)
+	code := vars["code"]
+
+	if code == "admin" {
+		mongodb.Global.DelAll()
+		fmt.Fprintf(w,"Deleted")
+	} else {
+		http.Error(w, "Failed", http.StatusForbidden)
+	}
+}
+
+func GetCount(w http.ResponseWriter, r *http.Request)  {
+	vars := mux.Vars(r)
+	code := vars["code"]
+
+	if code == "admin" {
+		allTrack := mongodb.Global.Count()
+		fmt.Println(allTrack)
+		fmt.Fprintf(w,strconv.Itoa(allTrack))
+	} else {
+		http.Error(w,"No access",http.StatusForbidden)
+	}
+}
+
+func Convertion(count int) string{
+	var testing []string
+	for i = len(test)-count; i<len(test);i++  {
+		sjekk,_:= strconv.Atoi(test[i])
+		if i <= sjekk {
+			testing = append(testing,test[i])
+		}
+	}
+	k := strings.Join(testing, ",")
+	return k
+}
+
 

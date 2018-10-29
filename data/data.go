@@ -7,12 +7,15 @@ type TrackStorage interface {
 	GetAllTracks() []Tracks
 	Get(keyID int) (Tracks, bool)
 	GetLastTrack() Tracks
+	DelAll()
 }
 
 type WebhookStorage interface {
 	Add(w Webhook) error
 	GetAllWebH() []Webhook
-	UpdateW(count int)
+	UpdateW(url string,count int)
+	GetWebhook(keyID string) (Webhook, bool)
+	DelWebhook(keyID string) bool
 }
 
 type Tracks struct {
@@ -52,9 +55,9 @@ type Ticker struct {
 }
 
 type Webhook struct {
+	Id  		string
 	WebhookUrl string `json:"webhookURL"`
-	TriggerValue int64 `json:"minTriggerValue"`
-	Count		 int
+	TriggerValue int `json:"minTriggerValue"`
 }
 
 type WebhookInfo struct {
