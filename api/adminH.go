@@ -13,7 +13,11 @@ func DelTracks(w http.ResponseWriter, r *http.Request)  {
 	code := vars["code"]
 
 	if code == "admin" {
-		mongodb.Global.DelAll()
+		ok := mongodb.Global.DelAll()
+		if !ok {
+			http.Error(w, "Failed to delete", http.StatusNotFound)
+			return
+		}
 		fmt.Fprintf(w,"Deleted "+strconv.Itoa(mongodb.Global.Count()))
 	} else {
 		http.Error(w, "No access", http.StatusForbidden)

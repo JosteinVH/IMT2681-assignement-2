@@ -55,7 +55,7 @@ func calcProcTime(id int) {
 
 	b, err := json.Marshal(url)
 	if err != nil {
-		fmt.Println("Could not marshal: %v", err)
+		fmt.Printf("Error in Count(): %v", err.Error())
 	}
 	http.Post(webURL, "application-json", bytes.NewBuffer((b)))
 }

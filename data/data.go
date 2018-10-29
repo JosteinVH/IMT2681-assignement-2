@@ -6,15 +6,17 @@ type TrackStorage interface {
 	Count() int
 	GetAllTracks() []Tracks
 	Get(keyID int) (Tracks, bool)
-	DelAll()
+	DelAll() bool
 }
 
 type WebhookStorage interface {
+	Init()
 	Add(w Webhook) error
 	GetAllWebH() []Webhook
 	UpdateW(url string,count int)
 	GetWebhook(keyID string) (Webhook, bool)
 	DelWebhook(keyID string) bool
+	Count() int
 }
 
 type Tracks struct {

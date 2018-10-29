@@ -32,7 +32,7 @@ func (db *TracksMongoDB) Init() {
 		panic(err)
 	}
 
-	fmt.Println("Connection...")
+	fmt.Printf("Connection...")
 	defer session.Close()
 }
 
@@ -81,9 +81,9 @@ func (db *TracksMongoDB) Get(keyID int) (Tracks, bool) {
 
 	err = session.DB(db.DatabaseName).C(db.DatabaseCol).Find(bson.M{"id":keyID}).One(&track)
 	if err != nil  {
+		fmt.Printf("Error %v", err.Error())
 		checkOk = false
 		return Tracks{},checkOk
-		//fmt.Println("ERROR: %v", err)
 	}
 
 	return track, checkOk
@@ -100,7 +100,7 @@ func (db *TracksMongoDB) GetAllTracks() []Tracks{
 
 	err = session.DB(db.DatabaseName).C(db.DatabaseCol).Find(bson.M{}).All(&all)
 	if err != nil {
-		fmt.Println("%v",err)
+		fmt.Printf("Error %v", err.Error())
 		return []Tracks{}
 	}
 
@@ -124,7 +124,7 @@ func(db *TracksMongoDB) AddTicker(ti Ticker) error {
 	return nil
 }
 
-func (db *TracksMongoDB) DelAll() {
+func (db *TracksMongoDB) DelAll() bool {
 	session, err := mgo.Dial(db.DatabaseURL)
 	if err != nil {
 		fmt.Printf("Couldn't get last: %v", err)
@@ -132,12 +132,28 @@ func (db *TracksMongoDB) DelAll() {
 	defer session.Close()
 
 	_,err = session.DB(db.DatabaseName).C(db.DatabaseCol).RemoveAll(bson.M{})
+	ok := true
 
 	if err != nil{
 		fmt.Printf("Error in LastTrack: %v", err)
+		ok = false
+		return ok
 	}
+	return ok
 }
 
+
+func (dbWB *WebhookMongoDB) Init() {
+	// Make sure we can connect to database
+	session, err := mgo.Dial(dbWB.DatabaseURL)
+	if err != nil {
+		//handle error
+		panic(err)
+	}
+
+	fmt.Printf("Connection...")
+	defer session.Close()
+}
 
 func (dbWB *WebhookMongoDB) Add(w Webhook) error {
 	// Make sure we can connect to database
@@ -168,7 +184,7 @@ func (dbWB *WebhookMongoDB) GetAllWebH() []Webhook{
 
 	err = session.DB(dbWB.DatabaseName).C(dbWB.DatabaseCol).Find(bson.M{}).All(&all)
 	if err != nil {
-		fmt.Println("%v",err)
+		fmt.Printf("Error in getallWebH(): %v", err.Error())
 		return []Webhook{}
 	}
 
@@ -187,7 +203,7 @@ func (dbWB *WebhookMongoDB)	UpdateW(url string,count int) {
 
 	err = session.DB(dbWB.DatabaseName).C(dbWB.DatabaseCol).Update(colQuerier, change)
 	if err != nil {
-		fmt.Println("%v",err)
+		fmt.Printf("%v",err)
 	}
 }
 
@@ -222,7 +238,7 @@ func (dbWB *WebhookMongoDB) DelWebhook(keyID string) bool{
 
 	err = session.DB(dbWB.DatabaseName).C(dbWB.DatabaseCol).Remove(bson.M{"id": keyID})
 	if err != nil {
-		fmt.Println("Remove failed: %v",err)
+		fmt.Printf("Remove failed: %v",err)
 		ok = false
 		return ok
 
@@ -231,4 +247,19 @@ func (dbWB *WebhookMongoDB) DelWebhook(keyID string) bool{
 	return ok
 }
 
+// Made it for testing
+func (dbWB *WebhookMongoDB) Count() int {
+	session, err := mgo.Dial(dbWB.DatabaseURL)
+	if err != nil{
+		panic(err)
+	}
+	defer session.Close()
 
+	count, err := session.DB(dbWB.DatabaseName).C(dbWB.DatabaseCol).Count()
+	if err != nil{
+		fmt.Printf("Error in Count(): %v", err.Error())
+		return -1
+	}
+
+	return count
+}

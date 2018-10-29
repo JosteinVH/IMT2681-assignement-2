@@ -93,7 +93,7 @@ func CalcTime(w http.ResponseWriter, r *http.Request) {
 	timestamp, err := strconv.Atoi((vars["time"]))
 
 	if err != nil {
-		fmt.Println("Could not convert: %v", err)
+		fmt.Printf("Error in Count(): %v", err.Error())
 	}
 
 	startTime := time.Now()
