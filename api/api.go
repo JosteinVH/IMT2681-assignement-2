@@ -286,6 +286,11 @@ func GetInfoTicker(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func Redirect(w http.ResponseWriter, r *http.Request){
+	fmt.Println(r.URL.Path)
+	http.Redirect(w, r, r.URL.Path+"/api/", 301)
+}
+
 func GetLatest(w http.ResponseWriter, r *http.Request) {
 	// Get the last track in db
 	track, ok := mongodb.Global.Get(mongodb.Global.Count())

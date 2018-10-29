@@ -38,7 +38,8 @@ func main() {
 	r := mux.NewRouter()
 
 	// IGC track handlers
-	r.HandleFunc("/paragliding/api", InfoHandler).Methods("GET")
+	r.HandleFunc("/paragliding", Redirect).Methods("GET")
+	r.HandleFunc("/paragliding/api/", InfoHandler).Methods("GET")
 	r.HandleFunc("/paragliding/api/igc", GetAllId).Methods("GET")
 	r.HandleFunc("/paragliding/api/igc", AddTrack).Methods("POST")
 	r.HandleFunc("/paragliding/api/igc/{id:[0-9]+}", GetTrack).Methods("GET")
