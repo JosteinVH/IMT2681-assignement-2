@@ -60,8 +60,6 @@ func main() {
 	r.HandleFunc("/admin/api/tracks/{code:[a-z]+}", DelTracks).Methods("DELETE")
 
 	go webhook.Tracks()
-	/*varwg sync.WaitGroup wgAdd(1)
-	go func() { webhook.Tracks()
-	wg.Done()}()*/
+
 	log.Fatal(http.ListenAndServe(":"+port, r))
 }
