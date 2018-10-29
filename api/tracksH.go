@@ -59,7 +59,7 @@ func conver(d time.Duration) string {
 		// Subtracting the number of months in seconds - to provide right amount of seconds
 		sec -= float64(months * month)
 	}
-
+	// new
 	// Divide seconds with days in seconds to find number of current days
 	day := int(sec / days) // Days in seconds
 	if day >= 1 {
