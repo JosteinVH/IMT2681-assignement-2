@@ -24,7 +24,7 @@ func main() {
 		os.Getenv("DB_COL_T"),
 	}
 
-
+	//TESTING
 	mongodb.G_Webhook = &mongodb.WebhookMongoDB{
 		os.Getenv("DB_URL"),
 		os.Getenv("DB_NAME"),
@@ -38,21 +38,21 @@ func main() {
 	r := mux.NewRouter()
 
 	// IGC track handlers
-	r.HandleFunc("/igcinfo/api", InfoHandler).Methods("GET")
-	r.HandleFunc("/igcinfo/api/igc", GetAllId).Methods("GET")
-	r.HandleFunc("/igcinfo/api/igc", AddTrack).Methods("POST")
-	r.HandleFunc("/igcinfo/api/igc/{id:[0-9]+}", GetTrack).Methods("GET")
-	r.HandleFunc("/igcinfo/api/igc/{id:[0-9]+}/{prop:[a-z_H]+}", GetTrackProp).Methods("GET")
+	r.HandleFunc("/paragliding/api", InfoHandler).Methods("GET")
+	r.HandleFunc("/paragliding/api/igc", GetAllId).Methods("GET")
+	r.HandleFunc("/paragliding/api/igc", AddTrack).Methods("POST")
+	r.HandleFunc("/paragliding/api/igc/{id:[0-9]+}", GetTrack).Methods("GET")
+	r.HandleFunc("/paragliding/api/igc/{id:[0-9]+}/{prop:[a-z_H]+}", GetTrackProp).Methods("GET")
 
 	// Ticker handlers
-	r.HandleFunc("/api/ticker/latest", GetLatest).Methods("GET")
-	r.HandleFunc("/api/ticker/", GetInfoTicker).Methods("GET")
-	r.HandleFunc("/api/ticker/{time:[0-9]+}", CalcTime).Methods("GET")
+	r.HandleFunc("/paragliding/api/ticker/latest", GetLatest).Methods("GET")
+	r.HandleFunc("/paragliding/api/ticker/", GetInfoTicker).Methods("GET")
+	r.HandleFunc("/paragliding/api/ticker/{time:[0-9]+}", CalcTime).Methods("GET")
 
 	// Webhook handlers:
-	r.HandleFunc("/api/webhook/new_track/", RegWebH).Methods("POST")
-	r.HandleFunc("/api/webhook/new_track/{id:[0-9]+}", GetWebH).Methods("GET")
-	r.HandleFunc("/api/webhook/new_track/{id:[0-9]+}", DelWebH).Methods("DELETE")
+	r.HandleFunc("/paragliding/api/webhook/new_track/", RegWebH).Methods("POST")
+	r.HandleFunc("/paragliding/api/webhook/new_track/{id:[0-9]+}", GetWebH).Methods("GET")
+	r.HandleFunc("/paragliding/api/webhook/new_track/{id:[0-9]+}", DelWebH).Methods("DELETE")
 
 
 	// Admin handlers
