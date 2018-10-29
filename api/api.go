@@ -16,11 +16,11 @@ import (
 
 // The time
 var timer = time.Now()
-var i int = 0
+// Webhook id
 var ider int = 1
+// Array of track id
+var test []string
 
-//TODO Webhook in memory
-var Urls = make(map[string] Webhook)
 
 const (
 	FIRST = 1
@@ -375,34 +375,42 @@ func RegWebH(w http.ResponseWriter, r *http.Request) {
 	ider++
 }
 
-var test []string
 func calcProcTime(id int) {
 	test = append(test, strconv.Itoa(id))
 
+	url := WebhookInfo{}
+	startTime := time.Now()
+	text, webURL := NyFunc()
+	if text == "" && webURL == "" {
+		//TODO something something
+	}
+	processing := (int((time.Now().Sub(startTime)))/ 1000000)
+
+	url.Text = text + strconv.Itoa(processing)+"ms"
+
+	b, err := json.Marshal(url)
+	if err != nil {
+		fmt.Println("Could not marshal: %v", err)
+	}
+	http.Post(webURL, "application-json", bytes.NewBuffer((b)))
+}
+
+func NyFunc() (string,string){
 	totTracks := mongodb.Global.GetAllTracks()
 	count := mongodb.Global.Count()
 	allWebH := mongodb.G_Webhook.GetAllWebH()
 
 	for _, wH := range allWebH {
-		fmt.Println(wH.TriggerValue)
 		if len(test) % wH.TriggerValue == 0 {
 			url := WebhookInfo{}
-
-			startTime := time.Now()
 			javel := Convertion(wH.TriggerValue)
-			processing := int((time.Now().Sub(startTime)))
+			url.Text = "Latest timestamp: " + strconv.Itoa(int(totTracks[count-1].Timestamp)) + "\n" + strconv.Itoa(wH.TriggerValue) + " new tracks are ID: " + javel + "\n" + "Processing: "
 
-			url.Text = "Latest timestamp: " + strconv.Itoa(int(totTracks[count-1].Timestamp)) + "\n" + strconv.Itoa(wH.TriggerValue) + " new tracks are ID: " + javel + "\n" + strconv.Itoa(processing)
-			b, err := json.Marshal(url)
-			if err != nil {
-				fmt.Println("Could not marshal: %v", err)
-				return
-			}
-			http.Post(wH.WebhookUrl, "application-json", bytes.NewBuffer((b)))
+			return url.Text, wH.WebhookUrl
 		}
 	}
+	return "",""
 }
-
 
 func GetWebH(w http.ResponseWriter, r *http.Request){
 	vars := mux.Vars(r)
@@ -430,6 +438,7 @@ func DelWebH(w http.ResponseWriter, r *http.Request){
 		http.Error(w,"Could not get webhook", http.StatusConflict)
 	}
 
+	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(webH); err != nil {
 		http.Error(w,"Failed to decode", http.StatusNotFound)
 	}
@@ -446,9 +455,9 @@ func DelTracks(w http.ResponseWriter, r *http.Request)  {
 
 	if code == "admin" {
 		mongodb.Global.DelAll()
-		fmt.Fprintf(w,"Deleted")
+		fmt.Fprintf(w,"Deleted "+strconv.Itoa(mongodb.Global.Count()))
 	} else {
-		http.Error(w, "Failed", http.StatusForbidden)
+		http.Error(w, "No access", http.StatusForbidden)
 	}
 }
 
@@ -467,7 +476,7 @@ func GetCount(w http.ResponseWriter, r *http.Request)  {
 
 func Convertion(count int) string{
 	var testing []string
-	for i = len(test)-count; i<len(test);i++  {
+	for i := len(test)-count; i<len(test);i++  {
 		sjekk,_:= strconv.Atoi(test[i])
 		if i <= sjekk {
 			testing = append(testing,test[i])

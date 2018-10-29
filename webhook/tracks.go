@@ -19,7 +19,7 @@ const theDiscordWebhook = "https://hooks.slack.com/services/TDM8F8QQ5/BDLV9FYAX/
 func sendDiscordLogEntry(now int,prev int) {
 
 	if now != prev {
-		info := Webhook{}
+		info := WebhookInfo{}
 		info.Text = "Number of track: "+strconv.Itoa(now)+" previous: "+strconv.Itoa(now)+"\n"
 		raw, _ := json.Marshal(info)
 		resp, err := http.Post(theDiscordWebhook, "application/json", bytes.NewBuffer(raw))

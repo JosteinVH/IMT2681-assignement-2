@@ -6,7 +6,6 @@ type TrackStorage interface {
 	Count() int
 	GetAllTracks() []Tracks
 	Get(keyID int) (Tracks, bool)
-	GetLastTrack() Tracks
 	DelAll()
 }
 

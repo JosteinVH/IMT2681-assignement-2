@@ -124,24 +124,6 @@ func(db *TracksMongoDB) AddTicker(ti Ticker) error {
 	return nil
 }
 
-func(db *TracksMongoDB) GetLastTrack() Tracks{
-	session, err := mgo.Dial(db.DatabaseURL)
-	if err != nil {
-		fmt.Printf("Couldn't get last: %v", err)
-	}
-	defer session.Close()
-
-	tr := Tracks{}
-
-	err = session.DB(db.DatabaseName).C(db.DatabaseCol).Find(bson.M{"$last": -1}).One(&tr)
-	if err != nil{
-		fmt.Printf("Error in LastTrack: %v", err)
-		return Tracks{}
-	}
-
-	return tr
-}
-
 func (db *TracksMongoDB) DelAll() {
 	session, err := mgo.Dial(db.DatabaseURL)
 	if err != nil {
